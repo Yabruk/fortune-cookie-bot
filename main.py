@@ -1,6 +1,7 @@
 import os
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, ContextTypes
+from random import choice
 
 # Отримуємо токен із змінного середовища
 TOKEN = os.getenv('BOT_TOKEN')
@@ -14,22 +15,22 @@ FORTUNES = [
     "Не бійся змін – вони принесуть користь.",
 ]
 
-def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
 
-def fortune(update: Update, context: CallbackContext) -> None:
-    from random import choice
-    update.message.reply_text(choice(FORTUNES))
+async def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(choice(FORTUNES))
 
 def main() -> None:
-    updater = Updater(TOKEN)
-    dispatcher = updater.dispatcher
+    # Створюємо додаток з токеном
+    application = Application.builder().token(TOKEN).build()
 
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("fortune", fortune))
+    # Додаємо обробники команд
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("fortune", fortune))
 
-    updater.start_polling()
-    updater.idle()
+    # Запускаємо polling
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
