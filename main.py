@@ -22,7 +22,7 @@ def predict(update, context):
     update.message.reply_text(f"Твоє передбачення: {prediction}")
 
 # Налаштування бота
-TOKEN = "7742603920:AAGnUOyXCns0hpLGFnw_-CemWo1GZd7nWlU"  # Вставте свій токен
+TOKEN = ""  # Вставте свій токен
 updater = Updater(TOKEN, use_context=True)
 dp = updater.dispatcher
 
