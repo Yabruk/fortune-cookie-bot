@@ -32,12 +32,12 @@ app = Flask(__name__)
 application = ApplicationBuilder().token(TOKEN).build()
 
 # Обробник команди /start
-def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
 
 # Обробник команди /fortune
-def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    update.message.reply_text(choice(FORTUNES))
+async def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(choice(FORTUNES))
 
 # Додаємо обробники команд
 application.add_handler(CommandHandler("start", start))
