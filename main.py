@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request
-from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # Отримуємо токен із змінного середовища
 TOKEN = os.getenv('BOT_TOKEN')
@@ -19,35 +19,34 @@ FORTUNES = [
 # Ініціалізація Flask-додатка
 app = Flask(__name__)
 
-# Ініціалізація Telegram Bot і Dispatcher
-bot = Bot(TOKEN)
-dispatcher = Dispatcher(bot, None, workers=0)  # Вебхук не потребує окремої черги
-
 # Обробник команди /start
-def start(update: Update, context) -> None:
-    update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
 
 # Обробник команди /fortune
-def fortune(update: Update, context) -> None:
+async def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     from random import choice
-    update.message.reply_text(choice(FORTUNES))
+    await update.message.reply_text(choice(FORTUNES))
+
+# Створюємо інстанс Application для роботи з вебхуками
+application = ApplicationBuilder().token(TOKEN).build()
 
 # Додаємо обробники команд
-dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(CommandHandler("fortune", fortune))
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("fortune", fortune))
 
 @app.route('/webhook', methods=['POST'])
 def webhook() -> str:
     """ Основна точка прийому оновлень від Telegram """
-    update = Update.de_json(request.get_json(force=True), bot)
-    dispatcher.process_update(update)
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    application.update_queue.put_nowait(update)
     return 'ok', 200
 
 @app.route('/set_webhook', methods=['GET', 'POST'])
 def set_webhook() -> str:
     """ Встановлює вебхук при першому запуску додатку """
     webhook_url = f"{APP_URL}/webhook"
-    success = bot.set_webhook(webhook_url)
+    success = application.bot.set_webhook(webhook_url)
     if success:
         return f"Webhook встановлено: {webhook_url}", 200
     else:
