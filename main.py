@@ -46,12 +46,13 @@ def webhook() -> str:
 @app.route('/set_webhook', methods=['GET', 'POST'])
 def set_webhook() -> str:
     """ Встановлює вебхук при першому запуску додатку """
+    from asyncio import run
     webhook_url = f"{APP_URL}/webhook"
-    success = application.bot.set_webhook(webhook_url)
-    if success:
+    try:
+        run(application.bot.set_webhook(webhook_url))
         return f"Webhook встановлено: {webhook_url}", 200
-    else:
-        return "Помилка встановлення вебхука", 500
+    except Exception as e:
+        return f"Помилка встановлення вебхука: {e}", 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
