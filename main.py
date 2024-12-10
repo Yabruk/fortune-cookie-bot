@@ -31,12 +31,12 @@ app = Flask(__name__)
 application = ApplicationBuilder().token(TOKEN).build()
 
 # Обробник команди /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
+def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
 
 # Обробник команди /fortune
-async def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(choice(FORTUNES))
+def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    update.message.reply_text(choice(FORTUNES))
 
 # Додаємо обробники команд
 application.add_handler(CommandHandler("start", start))
@@ -52,7 +52,7 @@ def webhook() -> str:
     try:
         data = request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        application.update_queue.put_nowait(update)
+        application.process_update(update)  # обробка оновлення
     except Exception as e:
         logger.error(f"Помилка обробки вебхука: {e}")
     return 'ok', 200
