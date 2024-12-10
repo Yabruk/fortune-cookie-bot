@@ -2,12 +2,16 @@ import os
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from random import choice
-import asyncio
+import logging
 
-# Отримуємо токен із змінного середовища
+# Налаштування логування
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Отримуємо токен і URL із змінних середовища
 TOKEN = os.getenv('BOT_TOKEN')
-APP_URL = os.getenv('APP_URL')  # URL вашого додатка на Render
+APP_URL = os.getenv('APP_URL')  # Ваш URL на Render
 
 # Список передбачень
 FORTUNES = [
@@ -47,9 +51,9 @@ def webhook() -> str:
     try:
         data = request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        asyncio.run(application.update_queue.put_nowait(update))  # Використовуємо asyncio.run()
+        application.update_queue.put_nowait(update)
     except Exception as e:
-        print("Помилка обробки вебхука:", e)
+        logger.error(f"Помилка обробки вебхука: {e}")
     return 'ok', 200
 
 @app.route('/set_webhook', methods=['GET', 'POST'])
@@ -57,7 +61,7 @@ def set_webhook() -> str:
     """ Встановлює вебхук при першому запуску додатку """
     webhook_url = f"{APP_URL}/webhook"
     try:
-        asyncio.run(application.bot.set_webhook(webhook_url))
+        application.bot.set_webhook(webhook_url)
         return f"Webhook встановлено: {webhook_url}", 200
     except Exception as e:
         return f"Помилка встановлення вебхука: {e}", 500
