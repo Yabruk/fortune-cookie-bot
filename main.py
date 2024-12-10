@@ -43,8 +43,13 @@ def home():
 @app.route('/webhook', methods=['POST'])
 def webhook() -> str:
     """ Основна точка прийому оновлень від Telegram """
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    application.update_queue.put_nowait(update)
+    try:
+        data = request.get_json(force=True)
+        print("Отримано дані від Telegram:", data)  # Додаємо логування
+        update = Update.de_json(data, application.bot)
+        application.update_queue.put_nowait(update)
+    except Exception as e:
+        print("Помилка обробки вебхука:", e)  # Лог помилки
     return 'ok', 200
 
 @app.route('/set_webhook', methods=['GET', 'POST'])
