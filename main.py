@@ -46,13 +46,10 @@ def webhook() -> str:
     """ Основна точка прийому оновлень від Telegram """
     try:
         data = request.get_json(force=True)
-        print("Отримано дані від Telegram:", data)  # Логування
         update = Update.de_json(data, application.bot)
-        print("Декодоване оновлення:", update)  # Логування оновлення
-        application.update_queue.put_nowait(update)
-        print("Оновлення додано до черги.")
+        asyncio.run(application.update_queue.put_nowait(update))  # Використовуємо asyncio.run()
     except Exception as e:
-        print("Помилка обробки вебхука:", e)  # Лог помилки
+        print("Помилка обробки вебхука:", e)
     return 'ok', 200
 
 @app.route('/set_webhook', methods=['GET', 'POST'])
