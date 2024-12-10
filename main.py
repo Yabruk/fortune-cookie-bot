@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from random import choice
 import logging
+import asyncio
 
 # Налаштування логування
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -52,7 +53,8 @@ def webhook() -> str:
     try:
         data = request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        application.process_update(update)  # обробка оновлення
+        # Викликаємо асинхронну обробку
+        asyncio.run(application.process_update(update))  # Використовуємо asyncio для асинхронної обробки
     except Exception as e:
         logger.error(f"Помилка обробки вебхука: {e}")
     return 'ok', 200
