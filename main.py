@@ -1,11 +1,11 @@
 import os
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
-from random import choice
 from flask import Flask, request
+from telegram import Bot, Update
+from telegram.ext import Dispatcher, CommandHandler
 
 # Отримуємо токен із змінного середовища
 TOKEN = os.getenv('BOT_TOKEN')
+APP_URL = os.getenv('APP_URL')  # URL вашого додатка на Render
 
 # Список передбачень
 FORTUNES = [
@@ -16,43 +16,43 @@ FORTUNES = [
     "Не бійся змін – вони принесуть користь.",
 ]
 
-# Flask додаток для запуску на Render
+# Ініціалізація Flask-додатка
 app = Flask(__name__)
 
-@app.route('/')
-def index():
-    return "Bot is running!"
+# Ініціалізація Telegram Bot і Dispatcher
+bot = Bot(TOKEN)
+dispatcher = Dispatcher(bot, None, workers=0)  # Вебхук не потребує окремої черги
 
-# Асинхронна функція для команди /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
+# Обробник команди /start
+def start(update: Update, context) -> None:
+    update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
 
-# Асинхронна функція для команди /fortune
-async def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(choice(FORTUNES))
+# Обробник команди /fortune
+def fortune(update: Update, context) -> None:
+    from random import choice
+    update.message.reply_text(choice(FORTUNES))
 
-def main() -> None:
-    # Створюємо додаток з токеном
-    application = Application.builder().token(TOKEN).build()
+# Додаємо обробники команд
+dispatcher.add_handler(CommandHandler("start", start))
+dispatcher.add_handler(CommandHandler("fortune", fortune))
 
-    # Додаємо обробники команд
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("fortune", fortune))
+@app.route('/webhook', methods=['POST'])
+def webhook() -> str:
+    """ Основна точка прийому оновлень від Telegram """
+    update = Update.de_json(request.get_json(force=True), bot)
+    dispatcher.process_update(update)
+    return 'ok', 200
 
-    # Запускаємо polling для Telegram бота
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+@app.route('/set_webhook', methods=['GET', 'POST'])
+def set_webhook() -> str:
+    """ Встановлює вебхук при першому запуску додатку """
+    webhook_url = f"{APP_URL}/webhook"
+    success = bot.set_webhook(webhook_url)
+    if success:
+        return f"Webhook встановлено: {webhook_url}", 200
+    else:
+        return "Помилка встановлення вебхука", 500
 
-# Flask сервер слухає на порту, який визначається змінною середовища PORT
 if __name__ == '__main__':
-    from threading import Thread
-
-    # Запускаємо Flask сервер у фоновому потоці
-    def run_flask():
-        app.run(host='0.0.0.0', port=int(os.getenv("PORT", 8080)))
-
-    # Стартуємо Flask сервер
-    thread = Thread(target=run_flask)
-    thread.start()
-
-    # Запускаємо Telegram бота
-    main()
+    # Запускаємо Flask-додаток
+    app.run(host='0.0.0.0', port=5000)
