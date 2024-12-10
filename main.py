@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes
 from random import choice
 import logging
 import asyncio
@@ -29,7 +29,7 @@ FORTUNES = [
 app = Flask(__name__)
 
 # Ініціалізація Telegram Application
-application = ApplicationBuilder().token(TOKEN).build()
+application = Application.builder().token(TOKEN).build()  # Оновлено на правильний синтаксис
 
 # Обробник команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -53,8 +53,8 @@ def webhook() -> str:
     try:
         data = request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        # Викликаємо асинхронну обробку
-        asyncio.run(application.process_update(update))  # Використовуємо asyncio для асинхронної обробки
+        # Викликаємо асинхронну обробку через asyncio.run
+        asyncio.run(application.process_update(update))  # Оновлено: використано asyncio
     except Exception as e:
         logger.error(f"Помилка обробки вебхука: {e}")
     return 'ok', 200
