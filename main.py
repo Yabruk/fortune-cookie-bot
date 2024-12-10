@@ -36,6 +36,10 @@ application = ApplicationBuilder().token(TOKEN).build()
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("fortune", fortune))
 
+@app.route('/')
+def home():
+    return "Бот працює! Вебхук налаштовано правильно.", 200
+
 @app.route('/webhook', methods=['POST'])
 def webhook() -> str:
     """ Основна точка прийому оновлень від Telegram """
