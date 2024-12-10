@@ -47,12 +47,12 @@ def home():
     return "Бот працює! Вебхук налаштовано правильно.", 200
 
 @app.route('/webhook', methods=['POST'])
-def webhook() -> str:
+async def webhook() -> str:
     """ Основна точка прийому оновлень від Telegram """
     try:
         data = request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        application.update_queue.put_nowait(update)
+        await application.process_update(update)  # Асинхронна обробка оновлення
     except Exception as e:
         logger.error(f"Помилка обробки вебхука: {e}")
     return 'ok', 200
