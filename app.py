@@ -2,6 +2,7 @@ import os
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from random import choice
 import logging
 
 # Налаштування логування
@@ -61,11 +62,14 @@ def set_webhook() -> str:
     """ Встановлює вебхук при першому запуску додатку """
     webhook_url = f"{APP_URL}/webhook"
     try:
+        # Встановлюємо вебхук
         application.bot.set_webhook(webhook_url)
         return f"Webhook встановлено: {webhook_url}", 200
     except Exception as e:
+        logger.error(f"Помилка встановлення вебхука: {e}")
         return f"Помилка встановлення вебхука: {e}", 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    # Перевіряємо, що сервер працює правильно
+    logger.info(f"Запуск сервера на порту 5000...")
+    app.run(host='0.0.0.0', port=5000)
