@@ -28,8 +28,9 @@ FORTUNES = [
 # Ініціалізація Flask-додатка
 app = Flask(__name__)
 
-# Ініціалізація Telegram Application
-application = Application.builder().token(TOKEN).build()  # Оновлено на правильний синтаксис
+# Ініціалізація Telegram Application через .initialize()
+application = Application(token=TOKEN)
+application.initialize()  # Важливе виправлення
 
 # Обробник команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
