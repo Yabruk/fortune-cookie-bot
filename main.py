@@ -1,75 +1,37 @@
-import os
-from flask import Flask, request
+import random
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from random import choice
-import logging
+from telegram.ext import Updater, CommandHandler, CallbackContext
 
-# Налаштування логування
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Отримуємо токен і URL із змінних середовища
-TOKEN = os.getenv('BOT_TOKEN')
-APP_URL = os.getenv('APP_URL')  # Ваш URL на Render
-
-# Список передбачень
-FORTUNES = [
-    "Сьогодні твій щасливий день!",
-    "ВЕБ ХУУУУК",
-    "Час почати щось нове та вірити у себе.",
-    "Тебе чекає приємний сюрприз.",
-    "Скоро ти отримаєш добру новину.",
-    "Не бійся змін – вони принесуть користь.",
+# Список передбачень для "печива"
+fortunes = [
+    "Твоя удача сьогодні в руках!",
+    "Завтра принесе нові можливості.",
+    "Не бійтеся змін – вони на краще.",
+    "Нехай ваш шлях буде легким і ясним.",
+    "Ваші мрії скоро збудуться!",
+    "Сьогодні - день великих досягнень!",
+    "Ваша мудрість допоможе знайти правильний шлях.",
+    "Не зупиняйтесь, якщо сьогодні не все йде за планом."
 ]
 
-# Ініціалізація Flask-додатка
-app = Flask(__name__)
+# Функція для видачі передбачення
+def fortune_cookie(update: Update, context: CallbackContext) -> None:
+    fortune = random.choice(fortunes)
+    update.message.reply_text(f"Ваше передбачення: {fortune}")
 
-# Ініціалізація Telegram Application через ApplicationBuilder
-application = ApplicationBuilder().token(TOKEN).build()
+def main():
+    # Замініть на ваш токен
+    token = 'YOUR_BOT_TOKEN'
 
-# Обробник команди /start
-def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
+    updater = Updater(token, use_context=True)
+    dispatcher = updater.dispatcher
 
-# Обробник команди /fortune
-def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    update.message.reply_text(choice(FORTUNES))
+    # Обробник команд
+    dispatcher.add_handler(CommandHandler("fortune", fortune_cookie))
 
-# Додаємо обробники команд
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CommandHandler("fortune", fortune))
-
-@app.route('/')
-def home():
-    return "Бот працює! Вебхук налаштовано правильно.", 200
-
-@app.route('/webhook', methods=['POST'])
-def webhook() -> str:
-    """ Основна точка прийому оновлень від Telegram """
-    try:
-        data = request.get_json(force=True)
-        update = Update.de_json(data, application.bot)
-        application.process_update(update)  # Синхронна обробка оновлення
-    except Exception as e:
-        logger.error(f"Помилка обробки вебхука: {e}")
-    return 'ok', 200
-
-@app.route('/set_webhook', methods=['GET', 'POST'])
-def set_webhook() -> str:
-    """ Встановлює вебхук при першому запуску додатку """
-    webhook_url = f"{APP_URL}/webhook"
-    try:
-        # Встановлюємо вебхук
-        application.bot.set_webhook(webhook_url)
-        return f"Webhook встановлено: {webhook_url}", 200
-    except Exception as e:
-        logger.error(f"Помилка встановлення вебхука: {e}")
-        return f"Помилка встановлення вебхука: {e}", 500
+    # Запуск бота
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
-    # Перевіряємо, що сервер працює правильно
-    logger.info(f"Запуск сервера на порту 5000...")
-    app.run(host='0.0.0.0', port=5000)
+    main()
