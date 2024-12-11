@@ -1,4 +1,5 @@
 import random
+import os
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
@@ -20,8 +21,12 @@ def fortune_cookie(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f"Ваше передбачення: {fortune}")
 
 def main():
-    # Замініть на ваш токен
-    token = 'YOUR_BOT_TOKEN'
+    # Отримуємо токен з змінної середовища
+    token = os.getenv('BOT_TOKEN')
+
+    if not token:
+        print("Токен не знайдено! Перевірте змінну середовища BOT_TOKEN.")
+        return
 
     updater = Updater(token, use_context=True)
     dispatcher = updater.dispatcher
