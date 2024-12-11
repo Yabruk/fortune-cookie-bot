@@ -1,7 +1,7 @@
 import random
 import os
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Список передбачень для "печива"
 fortunes = [
@@ -16,9 +16,9 @@ fortunes = [
 ]
 
 # Функція для видачі передбачення
-def fortune_cookie(update: Update, context: CallbackContext) -> None:
+async def fortune_cookie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     fortune = random.choice(fortunes)
-    update.message.reply_text(f"Ваше передбачення: {fortune}")
+    await update.message.reply_text(f"Ваше передбачення: {fortune}")
 
 def main():
     # Отримуємо токен з змінної середовища
@@ -28,15 +28,14 @@ def main():
         print("Токен не знайдено! Перевірте змінну середовища BOT_TOKEN.")
         return
 
-    updater = Updater(token, use_context=True)
-    dispatcher = updater.dispatcher
+    # Створення додатку
+    application = Application.builder().token(token).build()
 
     # Обробник команд
-    dispatcher.add_handler(CommandHandler("fortune", fortune_cookie))
+    application.add_handler(CommandHandler("fortune", fortune_cookie))
 
     # Запуск бота
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
