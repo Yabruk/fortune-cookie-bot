@@ -1,4 +1,5 @@
 import os
+import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 
@@ -21,21 +22,25 @@ async def start(update: Update, context):
 
 # Обробник кнопки
 async def button(update: Update, context):
-    print(f"Користувач {update.effective_user.username} натиснув кнопку")
     query = update.callback_query
     await query.answer()  # Закриває "годинник" на кнопці
     if query.data == "get_fortune":
         fortune = random.choice(FORTUNES)
         await query.edit_message_text(f"✨ Твоє передбачення: {fortune}")
+    print(f"Користувач {update.effective_user.username} натиснув кнопку")
 
 # Головна функція
 def main():
-    token = os.getenv("BOT_TOKEN")  # Токен отримується з середовища
+    token = os.getenv("BOT_TOKEN")  # Токен отримується зі змінної середовища
     if not token:
         raise ValueError("BOT_TOKEN не знайдено у змінних середовища.")
 
     # URL для Webhook
-    webhook_url = os.getenv("RENDER_EXTERNAL_URL") + "/webhook"
+    port = int(os.getenv("PORT", 8443))  # Отримуємо порт від Render або використовуємо 8443 за замовчуванням
+    webhook_url = os.getenv("RENDER_EXTERNAL_URL", "https://localhost") + "/webhook"
+
+    print(f"Порт: {port}")
+    print(f"Webhook URL: {webhook_url}")
 
     # Створення бота
     application = ApplicationBuilder().token(token).build()
@@ -46,13 +51,10 @@ def main():
 
     # Налаштування Webhook
     application.run_webhook(
-        
         listen="0.0.0.0",
-        port=int(os.getenv("PORT", 8443)),
+        port=port,
         webhook_url=webhook_url,
     )
-    # Після виклику application.run_webhook
-    print(f"Webhook встановлено: {webhook_url}")
 
 if __name__ == "__main__":
     main()
