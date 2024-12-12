@@ -1,11 +1,7 @@
 import os
 import random
-from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
-
-# Ініціалізуємо Flask для обробки запитів від Telegram
-app = Flask(__name__)
 
 # Список передбачень
 FORTUNES = [
@@ -16,12 +12,6 @@ FORTUNES = [
     "Твоя удача зовсім близько!",
     "Вір у себе – і все вдасться.",
 ]
-
-# Логування для Flask
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    print("Запит на /webhook отримано.")
-    return 'OK', 200  # Telegram чекає, що ми повернемо 200 OK
 
 # Функція старту
 async def start(update: Update, context):
