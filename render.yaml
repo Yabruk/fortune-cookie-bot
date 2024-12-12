@@ -1,7 +1,10 @@
 services:
-  - type: web
-    name: telegram-fortune-bot
-    env: python
-    plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python main.py"
+  - type: worker                 # Тип служби (worker — бекграундний процес)
+    name: fortune-cookie-bot     # Назва служби
+    env: python                  # Середовище (python, node, ruby тощо)
+    plan: free                   # План розгортання (free, standard тощо)
+    buildCommand: "pip install -r requirements.txt"  # Як встановлювати залежності
+    startCommand: "python main.py"  # Команда для запуску
+    envVars:
+      - key: BOT_TOKEN
+        sync: false  # Цей параметр означає, що змінну оточення потрібно додати через веб-інтерфейс
