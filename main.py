@@ -44,7 +44,7 @@ if __name__ == '__main__':
     app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
-        url_path="/webhook"
+        url_path=""
     )
     success = app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
     print(f"Результат установки вебхука: {success}")
