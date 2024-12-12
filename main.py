@@ -1,60 +1,48 @@
-import random
 import os
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
-from flask import Flask, request
+import random
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Список передбачень для "печива"
-fortunes = [
-    "Твоя удача сьогодні в руках!",
-    "Завтра принесе нові можливості.",
-    "Не бійтеся змін – вони на краще.",
-    "Нехай ваш шлях буде легким і ясним.",
-    "Ваші мрії скоро збудуться!",
-    "Сьогодні - день великих досягнень!",
-    "Ваша мудрість допоможе знайти правильний шлях.",
-    "Не зупиняйтесь, якщо сьогодні не все йде за планом."
+# Отримуємо токен із змінної оточення
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+# Список передбачень
+FORTUNES = [
+    "Сьогодні твій день! 😎",
+    "Очікуй приємний сюрприз найближчим часом! 🎉",
+    "Твоя енергія привертає успіх! 🚀",
+    "Зустрінеш старого друга, який змінить твій настрій! 😊",
+    "Час для відпочинку. Твоє тіло скаже тобі дякую! 🧘‍♀️",
+    "Важливе рішення прийде легко! 🧠",
+    "Будь готовий до несподіваних новин! 📬",
+    "Зроби крок вперед – успіх не за горами! 🏞️"
 ]
 
-# Функція для видачі передбачення
-async def fortune_cookie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    fortune = random.choice(fortunes)
-    await update.message.reply_text(f"Ваше передбачення: {fortune}")
+# Команда /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Привітальне повідомлення зі стартовою кнопкою."""
+    keyboard = [[InlineKeyboardButton("Отримати передбачення 🍪", callback_data='get_fortune')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(
+        "Привіт! 🥳 Натисни кнопку нижче, щоб отримати своє передбачення 🍪.",
+        reply_markup=reply_markup
+    )
 
-# Створення Flask додатку для Render
-app = Flask(__name__)
+# Обробка натискання кнопки "Отримати передбачення 🍪"
+async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Вибір випадкового передбачення."""
+    query = update.callback_query
+    await query.answer()  # Підтверджуємо натискання кнопки
+    random_fortune = random.choice(FORTUNES)
+    await query.edit_message_text(f"Твоє передбачення: \n\n🔮 *{random_fortune}* 🔮", parse_mode='Markdown')
 
-@app.route('/')
-def index():
-    return "Bot is running!"
-
-def main():
-    # Отримуємо токен з змінної середовища
-    token = os.getenv('BOT_TOKEN')
-
-    if not token:
-        print("Токен не знайдено! Перевірте змінну середовища BOT_TOKEN.")
-        return
-
-    # Створення додатку для Telegram бота
-    application = Application.builder().token(token).build()
-
-    # Обробник команд
-    application.add_handler(CommandHandler("fortune", fortune_cookie))
-
-    # Запуск бота у фоновому режимі
-    application.run_polling(allowed_updates=["message"])
-
+# Основна точка запуску
 if __name__ == '__main__':
-    # Запускаємо Flask сервер
-    from threading import Thread
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    def run_flask():
-        app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
+    # Обробники
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(handle_button_click))
 
-    # Запускаємо Flask у фоновому режимі
-    thread = Thread(target=run_flask)
-    thread.start()
-
-    # Запускаємо основний Telegram бот
-    main()
+    print("Бот запущено 🔥")
+    app.run_polling()
