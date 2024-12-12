@@ -61,7 +61,7 @@ def main():
 
         # Запуск Webhook
         logging.info("🚀 Запуск Webhook...")
-        application.run_webhook(
+        application.run_polling(
             listen="0.0.0.0",
             port=port,
             webhook_url=webhook_url,
