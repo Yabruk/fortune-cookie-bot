@@ -8,7 +8,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 PORT = int(os.getenv("PORT", "8443"))
 
-# Перевірка WEBHOOK_URL
+# Перевірка URL
 if not WEBHOOK_URL or not WEBHOOK_URL.startswith("https://"):
     raise ValueError("WEBHOOK_URL має бути задано та починатися з https://")
 
@@ -39,11 +39,12 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_button_click))
 
-    # Запускаємо веб-сервер
-    print(f"Запуск через webhook: {WEBHOOK_URL}/webhook")
+    # Виводимо дебаг-інформацію
+    print(f"Установка вебхука на: {WEBHOOK_URL}/webhook")
     app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
         url_path="/webhook"
     )
-    app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+    success = app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+    print(f"Результат установки вебхука: {success}")
