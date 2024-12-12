@@ -46,8 +46,8 @@ def main():
 
         # URL для Webhook
         port = int(os.getenv("PORT", 10000))  # Render надає порт через змінну середовища PORT
-        webhook_url = os.getenv("RENDER_EXTERNAL_URL", "https://localhost") + "/webhook"
-
+        webhook_url = os.getenv("RENDER_EXTERNAL_URL") + "/webhook"
+        
         logging.info(f"🌐 Порт: {port}")
         logging.info(f"🔗 Webhook URL: {webhook_url}")
 
