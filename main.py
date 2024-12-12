@@ -42,6 +42,6 @@ if __name__ == '__main__':
     app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
-        url_path=f"/{BOT_TOKEN}"
+        url_path=f"/{WEBHOOK_URL}"
     )
     app.bot.set_webhook(url=f"{WEBHOOK_URL}/{BOT_TOKEN}")
