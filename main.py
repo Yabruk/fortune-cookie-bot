@@ -1,7 +1,14 @@
 import os
 import random
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
+
+# Установлюємо логування
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 # Список передбачень
 FORTUNES = [
@@ -15,7 +22,7 @@ FORTUNES = [
 
 # Функція старту
 async def start(update: Update, context):
-    print(f"Користувач {update.effective_user.username} виконав /start")
+    logging.info(f"Користувач {update.effective_user.username} виконав /start")
     keyboard = [[InlineKeyboardButton("Передбачення", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Вітаю! Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
@@ -27,12 +34,12 @@ async def button(update: Update, context):
     if query.data == "get_fortune":
         fortune = random.choice(FORTUNES)
         await query.edit_message_text(f"✨ Твоє передбачення: {fortune}")
-    print(f"Користувач {update.effective_user.username} натиснув кнопку")
+    logging.info(f"Користувач {update.effective_user.username} натиснув кнопку")
 
 # Головна функція
 def main():
     try:
-        print("🔄 Запуск програми...")  # Лог на самому початку
+        logging.info("🔄 Запуск програми...")  # Лог на самому початку
         token = os.getenv("BOT_TOKEN")  # Токен отримується зі змінної середовища
         if not token:
             raise ValueError("❌ BOT_TOKEN не знайдено у змінних середовища.")
@@ -41,8 +48,8 @@ def main():
         port = int(os.getenv("PORT", 10000))  # Render надає порт через змінну середовища PORT
         webhook_url = os.getenv("RENDER_EXTERNAL_URL", "https://localhost") + "/webhook"
 
-        print(f"🌐 Порт: {port}")
-        print(f"🔗 Webhook URL: {webhook_url}")
+        logging.info(f"🌐 Порт: {port}")
+        logging.info(f"🔗 Webhook URL: {webhook_url}")
 
         # Створення бота
         application = ApplicationBuilder().token(token).build()
@@ -51,15 +58,15 @@ def main():
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CallbackQueryHandler(button))
 
-        print("🚀 Запуск Webhook...")
+        logging.info("🚀 Запуск Webhook...")
         application.run_webhook(
             listen="0.0.0.0",
             port=port,
             webhook_url=webhook_url,
         )
     except Exception as e:
-        print(f"❌ Помилка під час запуску програми: {e}")
+        logging.error(f"❌ Помилка під час запуску програми: {e}")
 
 if __name__ == "__main__":
-    print("🔄 Запускаємо основний процес...")
+    logging.info("🔄 Запускаємо основний процес...")
     main()
