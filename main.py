@@ -38,6 +38,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Головна функція
 def main():
+    logging.info(f"Змінні середовища: RENDER_EXTERNAL_URL={os.getenv('RENDER_EXTERNAL_URL')}, PORT={os.getenv('PORT')}, BOT_TOKEN={'OK' if os.getenv('BOT_TOKEN') else 'NOT FOUND'}")
     try:
         logging.info("🔄 Запуск програми...")
         token = os.getenv("BOT_TOKEN")
