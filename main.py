@@ -1,9 +1,11 @@
 import os
+import random
 import logging
+from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Логування
+# Налаштування логування
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -21,43 +23,52 @@ FORTUNES = [
 
 # Обробник команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logging.info(f"Користувач {update.effective_user.username} виконав /start")
+    logging.info(f"Запит на /start від {update.effective_user.id}")
     keyboard = [[InlineKeyboardButton("Передбачення", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Вітаю! Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
 
 # Обробник натискання кнопки
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.info(f"Користувач {update.effective_user.id} натиснув кнопку")
     query = update.callback_query
     await query.answer()
     if query.data == "get_fortune":
         fortune = FORTUNES.pop(0)
         FORTUNES.append(fortune)
         await query.edit_message_text(f"✨ Твоє передбачення: {fortune}")
-    logging.info(f"Користувач {update.effective_user.username} натиснув кнопку")
+
+# Тестовий маршрут для Webhook
+async def test_webhook(request):
+    logging.info("Webhook отримав запит!")
+    return web.Response(text="Webhook працює!", status=200)
 
 # Головна функція
 def main():
-    logging.info(f"Змінні середовища: RENDER_EXTERNAL_URL={os.getenv('RENDER_EXTERNAL_URL')}, PORT={os.getenv('PORT')}, BOT_TOKEN={'OK' if os.getenv('BOT_TOKEN') else 'NOT FOUND'}")
     try:
         logging.info("🔄 Запуск програми...")
         token = os.getenv("BOT_TOKEN")
         if not token:
             raise ValueError("❌ BOT_TOKEN не знайдено у змінних середовища.")
 
+        # Отримуємо змінні середовища
         webhook_url = os.getenv("RENDER_EXTERNAL_URL", "") + "/webhook"
         port = int(os.getenv("PORT", 8443))
 
         logging.info(f"🌐 Порт: {port}")
         logging.info(f"🔗 Webhook URL: {webhook_url}")
 
-        # Створення застосунку
+        # Створення застосунку Telegram
         application = ApplicationBuilder().token(token).build()
 
         # Додавання обробників
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CallbackQueryHandler(button))
 
+        # Створення кастомного маршруту для перевірки Webhook
+        app = web.Application()
+        app.router.add_post('/webhook', test_webhook)
+        app.router.add_get('/webhook', lambda request: web.Response(text="GET працює!", status=200))
 
         # Запуск Webhook
         logging.info("🚀 Запуск Webhook...")
@@ -65,6 +76,7 @@ def main():
             listen="0.0.0.0",
             port=port,
             webhook_url=webhook_url,
+            web_app=app,  # Додаємо кастомний маршрут
         )
     except Exception as e:
         logging.error(f"❌ Помилка: {e}")
