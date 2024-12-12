@@ -31,30 +31,35 @@ async def button(update: Update, context):
 
 # Головна функція
 def main():
-    token = os.getenv("BOT_TOKEN")  # Токен отримується зі змінної середовища
-    if not token:
-        raise ValueError("BOT_TOKEN не знайдено у змінних середовища.")
+    try:
+        print("Запуск програми...")  # Додаткове логування
+        token = os.getenv("BOT_TOKEN")  # Токен отримується зі змінної середовища
+        if not token:
+            raise ValueError("BOT_TOKEN не знайдено у змінних середовища.")
 
-    # URL для Webhook
-    port = int(os.getenv("PORT", 8443))  # Отримуємо порт від Render або використовуємо 8443 за замовчуванням
-    webhook_url = os.getenv("RENDER_EXTERNAL_URL", "https://localhost") + "/webhook"
+        # URL для Webhook
+        port = int(os.getenv("PORT", 8443))  # Отримуємо порт від Render або 8443 за замовчуванням
+        webhook_url = os.getenv("RENDER_EXTERNAL_URL", "https://localhost") + "/webhook"
 
-    print(f"Порт: {port}")
-    print(f"Webhook URL: {webhook_url}")
+        print(f"Порт: {port}")
+        print(f"Webhook URL: {webhook_url}")
 
-    # Створення бота
-    application = ApplicationBuilder().token(token).build()
+        # Створення бота
+        application = ApplicationBuilder().token(token).build()
 
-    # Додавання обробників
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button))
+        # Додавання обробників
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CallbackQueryHandler(button))
 
-    # Налаштування Webhook
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=port,
-        webhook_url=webhook_url,
-    )
+        # Налаштування Webhook
+        print("Запуск Webhook...")
+        application.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            webhook_url=webhook_url,
+        )
+    except Exception as e:
+        print(f"Помилка під час запуску програми: {e}")
 
 if __name__ == "__main__":
     main()
