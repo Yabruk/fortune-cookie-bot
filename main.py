@@ -1,7 +1,11 @@
 import os
 import random
+from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
+
+# Ініціалізуємо Flask для обробки запитів від Telegram
+app = Flask(__name__)
 
 # Список передбачень
 FORTUNES = [
@@ -12,6 +16,12 @@ FORTUNES = [
     "Твоя удача зовсім близько!",
     "Вір у себе – і все вдасться.",
 ]
+
+# Логування для Flask
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    print("Запит на /webhook отримано.")
+    return 'OK', 200  # Telegram чекає, що ми повернемо 200 OK
 
 # Функція старту
 async def start(update: Update, context):
@@ -32,17 +42,17 @@ async def button(update: Update, context):
 # Головна функція
 def main():
     try:
-        print("Запуск програми...")  # Додаткове логування
+        print("🔄 Запуск програми...")  # Лог на самому початку
         token = os.getenv("BOT_TOKEN")  # Токен отримується зі змінної середовища
         if not token:
-            raise ValueError("BOT_TOKEN не знайдено у змінних середовища.")
+            raise ValueError("❌ BOT_TOKEN не знайдено у змінних середовища.")
 
         # URL для Webhook
-        port = int(os.getenv("PORT", 8443))  # Отримуємо порт від Render або 8443 за замовчуванням
+        port = int(os.getenv("PORT", 10000))  # Render надає порт через змінну середовища PORT
         webhook_url = os.getenv("RENDER_EXTERNAL_URL", "https://localhost") + "/webhook"
 
-        print(f"Порт: {port}")
-        print(f"Webhook URL: {webhook_url}")
+        print(f"🌐 Порт: {port}")
+        print(f"🔗 Webhook URL: {webhook_url}")
 
         # Створення бота
         application = ApplicationBuilder().token(token).build()
@@ -51,15 +61,15 @@ def main():
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CallbackQueryHandler(button))
 
-        # Налаштування Webhook
-        print("Запуск Webhook...")
+        print("🚀 Запуск Webhook...")
         application.run_webhook(
             listen="0.0.0.0",
             port=port,
             webhook_url=webhook_url,
         )
     except Exception as e:
-        print(f"Помилка під час запуску програми: {e}")
+        print(f"❌ Помилка під час запуску програми: {e}")
 
 if __name__ == "__main__":
+    print("🔄 Запускаємо основний процес...")
     main()
