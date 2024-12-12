@@ -1,7 +1,6 @@
 import os
 import random
 import logging
-from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
@@ -38,11 +37,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         FORTUNES.append(fortune)
         await query.edit_message_text(f"✨ Твоє передбачення: {fortune}")
 
-# Тестовий маршрут для Webhook
-async def test_webhook(request):
-    logging.info("Webhook отримав запит!")
-    return web.Response(text="Webhook працює!", status=200)
-
 # Головна функція
 def main():
     try:
@@ -65,18 +59,12 @@ def main():
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CallbackQueryHandler(button))
 
-        # Створення кастомного маршруту для перевірки Webhook
-        app = web.Application()
-        app.router.add_post('/webhook', test_webhook)
-        app.router.add_get('/webhook', lambda request: web.Response(text="GET працює!", status=200))
-
         # Запуск Webhook
         logging.info("🚀 Запуск Webhook...")
         application.run_webhook(
             listen="0.0.0.0",
             port=port,
             webhook_url=webhook_url,
-            web_app=app,  # Додаємо кастомний маршрут
         )
     except Exception as e:
         logging.error(f"❌ Помилка: {e}")
