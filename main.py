@@ -5,8 +5,12 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 
 # Отримуємо змінні з оточення
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # URL твого бота
-PORT = int(os.getenv("PORT", "8443"))  # Render автоматично створює змінну PORT
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+PORT = int(os.getenv("PORT", "8443"))
+
+# Перевірка WEBHOOK_URL
+if not WEBHOOK_URL or not WEBHOOK_URL.startswith("https://"):
+    raise ValueError("WEBHOOK_URL має бути задано та починатися з https://")
 
 # Список передбачень
 FORTUNES = [
@@ -14,10 +18,6 @@ FORTUNES = [
     "Очікуй приємний сюрприз найближчим часом! 🎉",
     "Твоя енергія привертає успіх! 🚀",
     "Зустрінеш старого друга, який змінить твій настрій! 😊",
-    "Час для відпочинку. Твоє тіло скаже тобі дякую! 🧘‍♀️",
-    "Важливе рішення прийде легко! 🧠",
-    "Будь готовий до несподіваних новин! 📬",
-    "Зроби крок вперед – успіх не за горами! 🏞️"
 ]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -39,11 +39,11 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_button_click))
 
-    # Запускаємо веб-сервер для Telegram Webhook
-    print("Запуск через webhook 🔥")
+    # Запускаємо веб-сервер
+    print(f"Запуск через webhook: {WEBHOOK_URL}/webhook")
     app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
-        url_path="/webhook"  # Явний URL-шлях для вебхука
+        url_path="/webhook"
     )
-    app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Установка вебхука на сервер Telegram
+    app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
