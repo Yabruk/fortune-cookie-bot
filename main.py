@@ -40,16 +40,16 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_button_click))
 
     # Лог для перевірки
-    print(f"Встановлюємо вебхук на {WEBHOOK_URL}/webhook")
+    print(f"Встановлюємо вебхук на: {WEBHOOK_URL}/webhook")
 
     # Запускаємо веб-сервер
     try:
         app.run_webhook(
             listen="0.0.0.0",
             port=PORT,
-            url_path="/webhook"
+            url_path="/webhook"  # Шлях для обробки
         )
-        success = app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+        success = app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Установка вебхука
         print(f"Результат установки вебхука: {success}")
     except Exception as e:
         print(f"Помилка при встановленні вебхука: {e}")
