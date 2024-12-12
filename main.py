@@ -39,13 +39,16 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_button_click))
 
-    # Виводимо дебаг-інформацію
+    # Виводимо лог для перевірки
     print(f"Установка вебхука на: {WEBHOOK_URL}/webhook")
-    app.run_webhook(
-    listen="0.0.0.0",
-    port=PORT,
-    url_path=""  # Використовуємо кореневий шлях для тесту
-    )
-    app.bot.set_webhook(url=f"{WEBHOOK_URL}")  # Вебхук на головний домен
-
-    print(f"Результат установки вебхука: {success}")
+    try:
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            url_path="/webhook"
+        )
+        success = app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+        print(f"Результат установки вебхука: {success}")
+    except Exception as e:
+        print(f"Помилка при встановленні вебхука: {e}")
+        raise
