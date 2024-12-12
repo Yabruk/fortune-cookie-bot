@@ -1,5 +1,5 @@
 services:
-  - type: worker                 # Тип служби (worker — бекграундний процес)
+  - type: web                    # Тип служби (worker — бекграундний процес)
     name: fortune-cookie-bot     # Назва служби
     env: python                  # Середовище (python, node, ruby тощо)
     plan: free                   # План розгортання (free, standard тощо)
