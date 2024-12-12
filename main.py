@@ -42,7 +42,6 @@ if __name__ == '__main__':
     # Лог для перевірки
     print(f"Встановлюємо вебхук на: {WEBHOOK_URL}/webhook")
 
-    # Запускаємо веб-сервер
     try:
         app.run_webhook(
             listen="0.0.0.0",
