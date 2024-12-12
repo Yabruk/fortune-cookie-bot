@@ -3,7 +3,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Налаштування логування
+# Логування
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -44,7 +44,6 @@ def main():
         if not token:
             raise ValueError("❌ BOT_TOKEN не знайдено у змінних середовища.")
 
-        # Отримання URL та порту для Webhook
         webhook_url = os.getenv("RENDER_EXTERNAL_URL", "") + "/webhook"
         port = int(os.getenv("PORT", 8443))
 
@@ -57,6 +56,11 @@ def main():
         # Додавання обробників
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CallbackQueryHandler(button))
+
+        # Діагностика запитів
+        @application.on_post("/webhook")
+        async def handle_webhook_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            logging.info(f"📥 Отримано запит від Telegram: {update}")
 
         # Запуск Webhook
         logging.info("🚀 Запуск Webhook...")
