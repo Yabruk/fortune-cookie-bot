@@ -44,6 +44,7 @@ def main():
 
     # Налаштування Webhook
     application.run_webhook(
+        print(f"Webhook встановлено: {webhook_url}")
         listen="0.0.0.0",
         port=8443,
         webhook_url=webhook_url,
