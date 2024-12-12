@@ -1,55 +1,48 @@
 import os
 import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
-
-# Отримуємо змінні з оточення
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
-PORT = int(os.getenv("PORT", "8443"))
-
-# Перевірка URL
-if not WEBHOOK_URL or not WEBHOOK_URL.startswith("https://"):
-    raise ValueError("WEBHOOK_URL має бути задано та починатися з https://")
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 
 # Список передбачень
 FORTUNES = [
-    "Сьогодні твій день! 😎",
-    "Очікуй приємний сюрприз найближчим часом! 🎉",
-    "Твоя енергія привертає успіх! 🚀",
-    "Зустрінеш старого друга, який змінить твій настрій! 😊",
+    "Сьогодні твій день, скористайся ним!",
+    "Твоя робота буде оцінена.",
+    "Не бійся змін, вони принесуть успіх.",
+    "Прийми нові можливості з відкритим серцем.",
+    "Твоя удача зовсім близько!",
+    "Вір у себе – і все вдасться.",
 ]
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [[InlineKeyboardButton("Отримати передбачення 🍪", callback_data='get_fortune')]]
+# Функція старту
+async def start(update: Update, context):
+    keyboard = [[InlineKeyboardButton("Передбачення", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(
-        "Привіт! Натисни кнопку нижче, щоб отримати своє передбачення 🍪.",
-        reply_markup=reply_markup
-    )
+    await update.message.reply_text("Вітаю! Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
 
-async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+# Обробник кнопки
+async def button(update: Update, context):
     query = update.callback_query
-    await query.answer()
-    fortune = random.choice(FORTUNES)
-    await query.edit_message_text(f"🔮 *{fortune}* 🔮", parse_mode='Markdown')
+    await query.answer()  # Закриває "годинник" на кнопці
+    if query.data == "get_fortune":
+        fortune = random.choice(FORTUNES)
+        await query.edit_message_text(f"✨ Твоє передбачення: {fortune}")
 
-if __name__ == '__main__':
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_button_click))
+# Головна функція
+def main():
+    token = os.getenv("BOT_TOKEN")  # Токен отримується з середовища
+    if not token:
+        raise ValueError("BOT_TOKEN не знайдено у змінних середовища.")
 
-    # Лог для перевірки
-    print(f"Встановлюємо вебхук на: {WEBHOOK_URL}/webhook")
+    # Створення бота
+    application = ApplicationBuilder().token(token).build()
 
-    try:
-        app.run_webhook(
-            listen="0.0.0.0",
-            port=PORT,
-            url_path="/webhook"  # Шлях для обробки
-        )
-        success = app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")  # Установка вебхука
-        print(f"Результат установки вебхука: {success}")
-    except Exception as e:
-        print(f"Помилка при встановленні вебхука: {e}")
-        raise
+    # Додавання обробників
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(button))
+
+    # Запуск бота
+    print("Бот запущено!")
+    application.run_polling()
+
+if __name__ == "__main__":
+    main()
