@@ -39,8 +39,10 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_button_click))
 
-    # Виводимо лог для перевірки
-    print(f"Установка вебхука на: {WEBHOOK_URL}/webhook")
+    # Лог для перевірки
+    print(f"Встановлюємо вебхук на {WEBHOOK_URL}/webhook")
+
+    # Запускаємо веб-сервер
     try:
         app.run_webhook(
             listen="0.0.0.0",
