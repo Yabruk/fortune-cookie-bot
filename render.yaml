@@ -2,8 +2,11 @@ services:
   - type: web
     name: fortune-cookie-bot
     env: python
+    plan: free
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python main.py"
     envVars:
       - key: BOT_TOKEN
+        sync: true
+      - key: WEBHOOK_URL
         sync: true
