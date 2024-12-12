@@ -57,10 +57,6 @@ def main():
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CallbackQueryHandler(button))
 
-        # Діагностика запитів
-        @application.on_post("/webhook")
-        async def handle_webhook_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
-            logging.info(f"📥 Отримано запит від Telegram: {update}")
 
         # Запуск Webhook
         logging.info("🚀 Запуск Webhook...")
