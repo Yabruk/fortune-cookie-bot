@@ -14,12 +14,14 @@ FORTUNES = [
 
 # Функція старту
 async def start(update: Update, context):
+    print(f"Користувач {update.effective_user.username} виконав /start")
     keyboard = [[InlineKeyboardButton("Передбачення", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Вітаю! Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
 
 # Обробник кнопки
 async def button(update: Update, context):
+    print(f"Користувач {update.effective_user.username} натиснув кнопку")
     query = update.callback_query
     await query.answer()  # Закриває "годинник" на кнопці
     if query.data == "get_fortune":
@@ -44,11 +46,13 @@ def main():
 
     # Налаштування Webhook
     application.run_webhook(
-        print(f"Webhook встановлено: {webhook_url}")
+        
         listen="0.0.0.0",
-        port=8443,
+        port=int(os.getenv("PORT", 8443)),
         webhook_url=webhook_url,
     )
+    # Після виклику application.run_webhook
+    print(f"Webhook встановлено: {webhook_url}")
 
 if __name__ == "__main__":
     main()
