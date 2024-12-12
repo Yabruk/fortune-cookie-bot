@@ -9,7 +9,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# Передбачення
+# Список передбачень
 FORTUNES = [
     "Сьогодні твій день, скористайся ним!",
     "Твоя робота буде оцінена.",
@@ -19,14 +19,14 @@ FORTUNES = [
     "Вір у себе – і все вдасться.",
 ]
 
-# Обробник /start
+# Обробник команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logging.info(f"Користувач {update.effective_user.username} виконав /start")
     keyboard = [[InlineKeyboardButton("Передбачення", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Вітаю! Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
 
-# Обробник кнопки
+# Обробник натискання кнопки
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -44,13 +44,14 @@ def main():
         if not token:
             raise ValueError("❌ BOT_TOKEN не знайдено у змінних середовища.")
 
-        webhook_url = os.getenv("RENDER_EXTERNAL_URL") + "/webhook"
+        # Отримання URL та порту для Webhook
+        webhook_url = os.getenv("RENDER_EXTERNAL_URL", "") + "/webhook"
         port = int(os.getenv("PORT", 8443))
 
         logging.info(f"🌐 Порт: {port}")
         logging.info(f"🔗 Webhook URL: {webhook_url}")
 
-        # Створення бота
+        # Створення застосунку
         application = ApplicationBuilder().token(token).build()
 
         # Додавання обробників
@@ -63,7 +64,6 @@ def main():
             listen="0.0.0.0",
             port=port,
             webhook_url=webhook_url,
-            secret_token="mysecrettoken"  # Додано для перевірки запитів Telegram
         )
     except Exception as e:
         logging.error(f"❌ Помилка: {e}")
