@@ -42,9 +42,10 @@ if __name__ == '__main__':
     # Виводимо дебаг-інформацію
     print(f"Установка вебхука на: {WEBHOOK_URL}/webhook")
     app.run_webhook(
-        listen="0.0.0.0",
-        port=PORT,
-        url_path=""
+    listen="0.0.0.0",
+    port=PORT,
+    url_path=""  # Використовуємо кореневий шлях для тесту
     )
-    success = app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+    app.bot.set_webhook(url=f"{WEBHOOK_URL}")  # Вебхук на головний домен
+
     print(f"Результат установки вебхука: {success}")
