@@ -1,8 +1,8 @@
 import os
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from random import choice
-from flask import Flask, request
+from flask import Flask
 
 # Отримуємо токен із змінного середовища
 TOKEN = os.getenv('BOT_TOKEN')
@@ -25,11 +25,23 @@ def index():
 
 # Асинхронна функція для команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text('Привіт! Натисни /fortune, щоб отримати своє передбачення!')
+    # Створюємо кнопку
+    keyboard = [
+        [InlineKeyboardButton("Отримати передбачення", callback_data="get_fortune")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(
+        "Привіт! Натисни кнопку нижче, щоб отримати своє передбачення!",
+        reply_markup=reply_markup
+    )
 
-# Асинхронна функція для команди /fortune
-async def fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(choice(FORTUNES))
+# Асинхронна функція для обробки кнопки
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()  # Підтверджуємо отримання callback'у
+    if query.data == "get_fortune":
+        # Відправляємо передбачення
+        await query.edit_message_text(choice(FORTUNES))
 
 def main() -> None:
     # Створюємо додаток з токеном
@@ -37,7 +49,7 @@ def main() -> None:
 
     # Додаємо обробники команд
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("fortune", fortune))
+    application.add_handler(CallbackQueryHandler(button_handler))
 
     # Запускаємо polling для Telegram бота
     application.run_polling(allowed_updates=Update.ALL_TYPES)
