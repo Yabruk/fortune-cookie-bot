@@ -1,6 +1,6 @@
 import os
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from random import choice
 from flask import Flask
 
@@ -25,23 +25,36 @@ def index():
 
 # Асинхронна функція для команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # Створюємо кнопку
-    keyboard = [
-        [InlineKeyboardButton("Отримати передбачення", callback_data="get_fortune")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    # Створюємо меню у вигляді клавіатури
+    keyboard = [["Отримати передбачення", "Допомога"]]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    
     await update.message.reply_text(
-        "Привіт! Натисни кнопку нижче, щоб отримати своє передбачення!",
+        "Привіт! Обери опцію нижче:",
         reply_markup=reply_markup
     )
 
-# Асинхронна функція для обробки кнопки
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()  # Підтверджуємо отримання callback'у
-    if query.data == "get_fortune":
-        # Відправляємо передбачення
-        await query.edit_message_text(choice(FORTUNES))
+# Асинхронна функція для відповіді на вибір "Отримати передбачення"
+async def send_fortune(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(choice(FORTUNES))
+
+# Асинхронна функція для відповіді на вибір "Допомога"
+async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        "Натисни 'Отримати передбачення', щоб дізнатися свою долю! "
+        "Або використай /start, щоб оновити меню."
+    )
+
+# Обробник текстових повідомлень
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_message = update.message.text.lower()
+
+    if "передбачення" in user_message:
+        await send_fortune(update, context)
+    elif "допомога" in user_message:
+        await help_message(update, context)
+    else:
+        await update.message.reply_text("Вибери опцію з меню!")
 
 def main() -> None:
     # Створюємо додаток з токеном
@@ -49,7 +62,7 @@ def main() -> None:
 
     # Додаємо обробники команд
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     # Запускаємо polling для Telegram бота
     application.run_polling(allowed_updates=Update.ALL_TYPES)
