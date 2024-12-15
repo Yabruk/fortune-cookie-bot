@@ -26,24 +26,23 @@ def index():
 
 # Асинхронна функція для команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # Створюємо меню з кнопками
+    # Створюємо меню з однією кнопкою
     keyboard = [
-        [InlineKeyboardButton("Отримати передбачення", callback_data="get_fortune")],
-        [InlineKeyboardButton("Допомога", callback_data="help_message")]
+        [InlineKeyboardButton("Отримати передбачення", callback_data="get_fortune")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Надсилаємо повідомлення з меню
-    message = await update.message.reply_text("Натисни кнопку:", reply_markup=reply_markup)
+    # Відправляємо меню
+    menu_message = await update.message.reply_text("Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
 
-    # Видаляємо повідомлення через 5 секунд
-    await asyncio.sleep(5)
+    # Видаляємо повідомлення користувача /start через 2 секунди
+    await asyncio.sleep(2)
     try:
-        await message.delete()
+        await update.message.delete()
     except Exception as e:
-        print(f"Не вдалося видалити повідомлення: {e}")
+        print(f"Не вдалося видалити повідомлення користувача: {e}")
 
-# Асинхронна функція для обробки кнопок
+# Асинхронна функція для обробки кнопки
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()  # Підтверджуємо отримання callback'у
@@ -51,12 +50,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if query.data == "get_fortune":
         # Відправляємо передбачення
         await query.edit_message_text(choice(FORTUNES))
-    elif query.data == "help_message":
-        # Відправляємо допомогу
-        await query.edit_message_text(
-            "Натисни 'Отримати передбачення', щоб дізнатися свою долю! "
-            "Або використай /start, щоб оновити меню."
-        )
 
 def main() -> None:
     # Створюємо додаток з токеном
