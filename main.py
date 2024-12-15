@@ -1,11 +1,18 @@
 import os
 import asyncio
 import json
+import logging
 from datetime import datetime, timedelta
 from random import choice
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from flask import Flask
+
+# Налаштування логування
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Отримуємо токен із змінного середовища
 TOKEN = os.getenv('BOT_TOKEN')
@@ -40,7 +47,7 @@ def get_random_fortune():
     fortunes = load_fortunes()
     now = datetime.now()
 
-    print(f"[LOG] Загальна кількість передбачень: {len(fortunes)}")
+    logging.info(f"Загальна кількість передбачень: {len(fortunes)}")
 
     # Фільтруємо передбачення за датою останнього використання
     available_fortunes = [
@@ -50,24 +57,24 @@ def get_random_fortune():
     ]
 
     # Логування доступних передбачень
-    print(f"[LOG] Кількість доступних передбачень після фільтрування: {len(available_fortunes)}")
+    logging.info(f"Кількість доступних передбачень після фільтрування: {len(available_fortunes)}")
     for idx, fortune in enumerate(available_fortunes, start=1):
-        print(f"[LOG] Доступне передбачення {idx}: {fortune['text']}")
+        logging.info(f"Доступне передбачення {idx}: '{fortune['text']}', останнє використання: {fortune['last_used']}")
 
     # Якщо немає доступних передбачень, повертаємо None
     if not available_fortunes:
-        print("[LOG] Усі передбачення використано. Жодне не доступне.")
+        logging.warning("Усі передбачення використано. Жодне не доступне.")
         return None
 
     # Вибираємо випадкове передбачення
     selected_fortune = choice(available_fortunes)
-    print(f"[LOG] Вибране передбачення: {selected_fortune['text']}")
+    logging.info(f"Вибране передбачення: '{selected_fortune['text']}'")
 
     # Оновлюємо дату останнього використання
     for fortune in fortunes:
         if fortune["text"] == selected_fortune["text"]:
             fortune["last_used"] = now.strftime("%Y-%m-%d")
-            print(f"[LOG] Оновлено дату використання для передбачення: {fortune['text'], fortune["last_used"]}")
+            logging.info(f"Оновлено дату використання для передбачення: '{fortune['text']}'")
             break
 
     # Зберігаємо файл із оновленим передбаченням
@@ -86,7 +93,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         await update.message.delete()
     except Exception as e:
-        print(f"Не вдалося видалити повідомлення користувача: {e}")
+        logging.error(f"Не вдалося видалити повідомлення користувача: {e}")
 
     context.chat_data['status_message'] = status_message
 
@@ -98,7 +105,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     try:
         await query.message.delete()
     except Exception as e:
-        print(f"Не вдалося видалити повідомлення: {e}")
+        logging.error(f"Не вдалося видалити повідомлення: {e}")
 
     asyncio.create_task(handle_cookie_animation(query, context))
 
@@ -111,7 +118,7 @@ async def handle_cookie_animation(query, context):
         try:
             await status_message.edit_text("Секундочку...")
         except Exception as e:
-            print(f"Не вдалося оновити статус: {e}")
+            logging.error(f"Не вдалося оновити статус: {e}")
 
     # Відправляємо анімований стікер
     sticker_message = await query.message.chat.send_sticker(COOKIE_STICKER_ID)
@@ -121,14 +128,14 @@ async def handle_cookie_animation(query, context):
     try:
         await sticker_message.delete()
     except Exception as e:
-        print(f"Не вдалося видалити стікер: {e}")
+        logging.error(f"Не вдалося видалити стікер: {e}")
 
     # Оновлюємо статус: "Твоє передбачення на сьогодні"
     if status_message:
         try:
             await status_message.edit_text("Твоє передбачення на сьогодні")
         except Exception as e:
-            print(f"Не вдалося оновити статус: {e}")
+            logging.error(f"Не вдалося оновити статус: {e}")
 
     # Отримуємо передбачення через функцію
     fortune = get_random_fortune()
@@ -139,20 +146,20 @@ async def handle_cookie_animation(query, context):
     fortune_message = await query.message.chat.send_message(
         f"<code>{fortune}</code>", parse_mode="HTML"
     )
-    await asyncio.sleep(10)
+    await asyncio.sleep(120)
 
     # Видаляємо передбачення через 2 хвилини
     try:
         await fortune_message.delete()
     except Exception as e:
-        print(f"Не вдалося видалити повідомлення з передбаченням: {e}")
+        logging.error(f"Не вдалося видалити повідомлення з передбаченням: {e}")
 
     # Оновлюємо статус: "У мене для тебе щось є.."
     if status_message:
         try:
             await status_message.edit_text("У мене для тебе щось є..")
         except Exception as e:
-            print(f"Не вдалося оновити статус: {e}")
+            logging.error(f"Не вдалося оновити статус: {e}")
 
     # Повертаємо меню з кнопкою
     keyboard = [[InlineKeyboardButton("Печенька", callback_data="get_fortune")]]
