@@ -20,8 +20,10 @@ TOKEN = os.getenv('BOT_TOKEN')
 # ID анімованого стікера печива (замініть на свій стікер)
 COOKIE_STICKER_ID = "CAACAgEAAxkBAAEK8H9nXwj-Y9LWlnWE37D_jkmOTED_QgAC_QIAAo11IEQSMwdGJ3a-hjYE"
 
-# Шлях до файлу передбачень
-FORTUNES_FILE = "fortunes.json"
+# Шляхи до файлів передбачень
+MORNING_FORTUNES_FILE = "morning_fortunes.json"
+DAILY_FORTUNES_FILE = "daily_fortunes.json"
+EVENING_FORTUNES_FILE = "evening_fortunes.json"
 
 # Flask додаток для запуску на Render
 app = Flask(__name__)
@@ -30,24 +32,35 @@ app = Flask(__name__)
 def index():
     return "Bot is running!"
 
+# Вибір файлу передбачень залежно від часу
+def get_fortunes_file():
+    now = datetime.now().time()
+    if now >= datetime.strptime("04:00", "%H:%M").time() and now < datetime.strptime("12:00", "%H:%M").time():
+        return MORNING_FORTUNES_FILE
+    elif now >= datetime.strptime("12:00", "%H:%M").time() and now < datetime.strptime("17:00", "%H:%M").time():
+        return DAILY_FORTUNES_FILE
+    else:
+        return EVENING_FORTUNES_FILE
+
 # Завантаження передбачень із файлу
 def load_fortunes():
-    if not os.path.exists(FORTUNES_FILE):
-        raise FileNotFoundError(f"Файл {FORTUNES_FILE} не знайдено")
-    with open(FORTUNES_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    fortunes_file = get_fortunes_file()
+    if not os.path.exists(fortunes_file):
+        raise FileNotFoundError(f"Файл {fortunes_file} не знайдено")
+    with open(fortunes_file, "r", encoding="utf-8") as f:
+        return json.load(f), fortunes_file
 
 # Збереження передбачень у файл
-def save_fortunes(fortunes):
-    with open(FORTUNES_FILE, "w", encoding="utf-8") as f:
+def save_fortunes(fortunes, fortunes_file):
+    with open(fortunes_file, "w", encoding="utf-8") as f:
         json.dump(fortunes, f, ensure_ascii=False, indent=4)
 
 # Вибір випадкового передбачення
 def get_random_fortune():
-    fortunes = load_fortunes()
+    fortunes, fortunes_file = load_fortunes()
     now = datetime.now()
 
-    logging.info(f"Загальна кількість передбачень: {len(fortunes)}")
+    logging.info(f"Загальна кількість передбачень у {fortunes_file}: {len(fortunes)}")
 
     # Фільтруємо передбачення за датою останнього використання
     available_fortunes = [
@@ -63,7 +76,7 @@ def get_random_fortune():
 
     # Якщо немає доступних передбачень, повертаємо None
     if not available_fortunes:
-        logging.warning("Усі передбачення використано. Жодне не доступне.")
+        logging.warning(f"Усі передбачення з файлу {fortunes_file} використано. Жодне не доступне.")
         return None
 
     # Вибираємо випадкове передбачення
@@ -78,7 +91,7 @@ def get_random_fortune():
             break
 
     # Зберігаємо файл із оновленим передбаченням
-    save_fortunes(fortunes)
+    save_fortunes(fortunes, fortunes_file)
 
     return selected_fortune["text"]
 
@@ -146,7 +159,7 @@ async def handle_cookie_animation(query, context):
     fortune_message = await query.message.chat.send_message(
         f"<code>{fortune}</code>", parse_mode="HTML"
     )
-    await asyncio.sleep(5)
+    await asyncio.sleep(120)
 
     # Видаляємо передбачення через 2 хвилини
     try:
