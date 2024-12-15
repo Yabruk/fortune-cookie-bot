@@ -40,6 +40,8 @@ def get_random_fortune():
     fortunes = load_fortunes()
     now = datetime.now()
 
+    print(f"[LOG] Загальна кількість передбачень: {len(fortunes)}")
+
     # Фільтруємо передбачення за датою останнього використання
     available_fortunes = [
         fortune for fortune in fortunes
@@ -47,17 +49,25 @@ def get_random_fortune():
         (datetime.strptime(fortune["last_used"], "%Y-%m-%d") < now - timedelta(days=30))
     ]
 
+    # Логування доступних передбачень
+    print(f"[LOG] Кількість доступних передбачень після фільтрування: {len(available_fortunes)}")
+    for idx, fortune in enumerate(available_fortunes, start=1):
+        print(f"[LOG] Доступне передбачення {idx}: {fortune['text']}")
+
     # Якщо немає доступних передбачень, повертаємо None
     if not available_fortunes:
+        print("[LOG] Усі передбачення використано. Жодне не доступне.")
         return None
 
     # Вибираємо випадкове передбачення
     selected_fortune = choice(available_fortunes)
+    print(f"[LOG] Вибране передбачення: {selected_fortune['text']}")
 
     # Оновлюємо дату останнього використання
     for fortune in fortunes:
         if fortune["text"] == selected_fortune["text"]:
             fortune["last_used"] = now.strftime("%Y-%m-%d")
+            print(f"[LOG] Оновлено дату використання для передбачення: {fortune['text']}")
             break
 
     # Зберігаємо файл із оновленим передбаченням
