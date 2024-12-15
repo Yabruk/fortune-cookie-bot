@@ -1,4 +1,5 @@
 import os
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from random import choice
@@ -32,8 +33,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Відправляємо меню без тексту (використовуємо невидимий символ)
-    await update.message.reply_text(".", reply_markup=reply_markup)
+    # Надсилаємо повідомлення з меню
+    message = await update.message.reply_text("Натисни кнопку:", reply_markup=reply_markup)
+
+    # Видаляємо повідомлення через 5 секунд
+    await asyncio.sleep(5)
+    try:
+        await message.delete()
+    except Exception as e:
+        print(f"Не вдалося видалити повідомлення: {e}")
 
 # Асинхронна функція для обробки кнопок
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
