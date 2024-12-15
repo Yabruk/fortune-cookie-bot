@@ -18,7 +18,7 @@ FORTUNES = [
 ]
 
 # ID анімованого стікера печива (замініть на свій стікер)
-COOKIE_STICKER_ID = "CAACAgEAAxkBAAEK8H9nXwj-Y9LWlnWE37D_jkmOTED_QgAC_QIAAo11IEQSMwdGJ3a-hjYE"
+COOKIE_STICKER_ID = "CAACAgIAAxkBAAEFmzFkUmZWsYC9u9mAbtEHcYZLLdO77AACJgADwDZPE8ykrBMVdINvLwQ"
 
 # Flask додаток для запуску на Render
 app = Flask(__name__)
@@ -31,7 +31,7 @@ def index():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Створюємо меню з однією кнопкою
     keyboard = [
-        [InlineKeyboardButton("Печенько", callback_data="get_fortune")]
+        [InlineKeyboardButton("Печенька", callback_data="get_fortune")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -44,7 +44,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         print(f"Не вдалося видалити повідомлення користувача: {e}")
 
-# Асинхронна функція для обробки кнопки
+# Функція для обробки кнопки "Печенька"
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()  # Підтверджуємо отримання callback'у
@@ -55,6 +55,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     except Exception as e:
         print(f"Не вдалося видалити повідомлення: {e}")
 
+    # Створюємо асинхронну задачу для обробки подій після натискання кнопки
+    asyncio.create_task(handle_cookie_animation(query))
+
+# Асинхронна функція для обробки анімації, передбачення і таймера
+async def handle_cookie_animation(query):
     # Відправляємо анімований стікер
     sticker_message = await query.message.chat.send_sticker(COOKIE_STICKER_ID)
     await asyncio.sleep(2)  # Чекаємо, поки анімація програється
@@ -66,7 +71,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         print(f"Не вдалося видалити стікер: {e}")
 
     # Відправляємо передбачення з моношрифтом
-    fortune_message = await query.message.chat.send_message(f"```\n{choice(FORTUNES)}\n```", parse_mode="MarkdownV2")
+    fortune_message = await query.message.chat.send_message(f"`\n{choice(FORTUNES)}\n`", parse_mode="MarkdownV2")
 
     # Чекаємо 2 хвилини, потім видаляємо передбачення
     await asyncio.sleep(120)
