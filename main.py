@@ -28,12 +28,12 @@ def index():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Створюємо меню з однією кнопкою
     keyboard = [
-        [InlineKeyboardButton("Отримати передбачення", callback_data="get_fortune")]
+        [InlineKeyboardButton("Печенька", callback_data="get_fortune")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Відправляємо меню
-    menu_message = await update.message.reply_text("Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
+    menu_message = await update.message.reply_text("Ось, тримай печеньку", reply_markup=reply_markup)
 
     # Видаляємо повідомлення користувача /start через 2 секунди
     await asyncio.sleep(0)
