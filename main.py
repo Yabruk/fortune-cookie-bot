@@ -71,7 +71,7 @@ async def handle_cookie_animation(query):
         print(f"Не вдалося видалити стікер: {e}")
 
     # Відправляємо передбачення з моношрифтом
-    fortune_message = await query.message.chat.send_message(f"`\n{choice(FORTUNES)}\n`", parse_mode="MarkdownV2")
+    fortune_message = await query.message.chat.send_message(f"`{choice(FORTUNES)}`", parse_mode="MarkdownV2")
 
     # Чекаємо 2 хвилини, потім видаляємо передбачення
     await asyncio.sleep(120)
