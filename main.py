@@ -18,7 +18,7 @@ FORTUNES = [
 ]
 
 # ID анімованого стікера печива (замініть на свій стікер)
-COOKIE_STICKER_ID = "CAACAgEAAxkBAAEK8H9nXwj-Y9LWlnWE37D_jkmOTED_QgAC_QIAAo11IEQSMwdGJ3a-hjYE"
+COOKIE_STICKER_ID = "CAACAgIAAxkBAAEFmzFkUmZWsYC9u9mAbtEHcYZLLdO77AACJgADwDZPE8ykrBMVdINvLwQ"
 
 # Flask додаток для запуску на Render
 app = Flask(__name__)
@@ -35,6 +35,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    # Відправляємо повідомлення стану
+    status_message = await update.message.reply_text("У мене для тебе щось є..")
+    
     # Відправляємо меню
     menu_message = await update.message.reply_text("Ось, тримай печеньку", reply_markup=reply_markup)
 
@@ -43,6 +46,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.delete()
     except Exception as e:
         print(f"Не вдалося видалити повідомлення користувача: {e}")
+
+    # Зберігаємо ID статусного повідомлення у контексті
+    context.chat_data['status_message'] = status_message
 
 # Функція для обробки кнопки "Печенька"
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -56,10 +62,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         print(f"Не вдалося видалити повідомлення: {e}")
 
     # Створюємо асинхронну задачу для обробки подій після натискання кнопки
-    asyncio.create_task(handle_cookie_animation(query))
+    asyncio.create_task(handle_cookie_animation(query, context))
 
 # Асинхронна функція для обробки анімації, передбачення і таймера
-async def handle_cookie_animation(query):
+async def handle_cookie_animation(query, context):
+    # Отримуємо статусне повідомлення
+    status_message = context.chat_data.get('status_message')
+
+    # Оновлюємо статус: "Секундочку..."
+    if status_message:
+        try:
+            await status_message.edit_text("Секундочку...")
+        except Exception as e:
+            print(f"Не вдалося оновити статус: {e}")
+
     # Відправляємо анімований стікер
     sticker_message = await query.message.chat.send_sticker(COOKIE_STICKER_ID)
     await asyncio.sleep(2)  # Чекаємо, поки анімація програється
@@ -70,6 +86,13 @@ async def handle_cookie_animation(query):
     except Exception as e:
         print(f"Не вдалося видалити стікер: {e}")
 
+    # Оновлюємо статус: "Твоє передбачення на сьогодні"
+    if status_message:
+        try:
+            await status_message.edit_text("Твоє передбачення на сьогодні")
+        except Exception as e:
+            print(f"Не вдалося оновити статус: {e}")
+
     # Відправляємо передбачення з моношрифтом
     fortune_message = await query.message.chat.send_message(f"`{choice(FORTUNES)}`", parse_mode="MarkdownV2")
 
@@ -79,6 +102,13 @@ async def handle_cookie_animation(query):
         await fortune_message.delete()
     except Exception as e:
         print(f"Не вдалося видалити повідомлення з передбаченням: {e}")
+
+    # Оновлюємо статус: "У мене для тебе щось є.."
+    if status_message:
+        try:
+            await status_message.edit_text("У мене для тебе щось є..")
+        except Exception as e:
+            print(f"Не вдалося оновити статус: {e}")
 
     # Показуємо меню з кнопкою
     keyboard = [
