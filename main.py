@@ -47,8 +47,8 @@ def get_random_fortune():
         (datetime.strptime(fortune["last_used"], "%Y-%m-%d") < now - timedelta(days=30))
     ]
 
+    # Якщо немає доступних передбачень, повертаємо None
     if not available_fortunes:
-        # Якщо немає доступних передбачень
         return None
 
     # Вибираємо випадкове передбачення
@@ -129,7 +129,7 @@ async def handle_cookie_animation(query, context):
     fortune_message = await query.message.chat.send_message(
         f"<code>{fortune}</code>", parse_mode="HTML"
     )
-    await asyncio.sleep(120)
+    await asyncio.sleep(10)
 
     # Видаляємо передбачення через 2 хвилини
     try:
