@@ -68,7 +68,7 @@ def get_random_fortune():
     return selected_fortune["text"]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [[InlineKeyboardButton("Печенька", callback_data="get_fortune")]]
+    keyboard = [[InlineKeyboardButton("Печенько", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     status_message = await update.message.reply_text("У мене для тебе щось є..")
@@ -122,7 +122,7 @@ async def handle_cookie_animation(query, context):
     fortune_message = await query.message.chat.send_message(
         f"<code>{fortune}</code>", parse_mode="HTML"
     )
-    await asyncio.sleep(120)
+    await asyncio.sleep(28800)
 
     try:
         await fortune_message.delete()
@@ -135,7 +135,7 @@ async def handle_cookie_animation(query, context):
         except Exception:
             pass
 
-    keyboard = [[InlineKeyboardButton("Печенька", callback_data="get_fortune")]]
+    keyboard = [[InlineKeyboardButton("Печенько", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.chat.send_message("Ось, тримай печеньку", reply_markup=reply_markup)
 
