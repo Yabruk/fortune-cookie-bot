@@ -25,23 +25,30 @@ def index():
 
 # Асинхронна функція для команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # Створюємо кнопку
+    # Створюємо меню з кнопками
     keyboard = [
-        [InlineKeyboardButton("Отримати передбачення", callback_data="get_fortune")]
+        [InlineKeyboardButton("Отримати передбачення", callback_data="get_fortune")],
+        [InlineKeyboardButton("Допомога", callback_data="help_message")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(
-        "Привіт! Натисни кнопку нижче, щоб отримати своє передбачення!",
-        reply_markup=reply_markup
-    )
 
-# Асинхронна функція для обробки кнопки
+    # Відправляємо меню без тексту (використовуємо невидимий символ)
+    await update.message.reply_text("\u200b", reply_markup=reply_markup)
+
+# Асинхронна функція для обробки кнопок
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()  # Підтверджуємо отримання callback'у
+
     if query.data == "get_fortune":
         # Відправляємо передбачення
         await query.edit_message_text(choice(FORTUNES))
+    elif query.data == "help_message":
+        # Відправляємо допомогу
+        await query.edit_message_text(
+            "Натисни 'Отримати передбачення', щоб дізнатися свою долю! "
+            "Або використай /start, щоб оновити меню."
+        )
 
 def main() -> None:
     # Створюємо додаток з токеном
