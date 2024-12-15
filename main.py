@@ -146,7 +146,7 @@ async def handle_cookie_animation(query, context):
     fortune_message = await query.message.chat.send_message(
         f"<code>{fortune}</code>", parse_mode="HTML"
     )
-    await asyncio.sleep(120)
+    await asyncio.sleep(5)
 
     # Видаляємо передбачення через 2 хвилини
     try:
