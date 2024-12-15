@@ -36,7 +36,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     menu_message = await update.message.reply_text("Натисни кнопку, щоб отримати передбачення:", reply_markup=reply_markup)
 
     # Видаляємо повідомлення користувача /start через 2 секунди
-    await asyncio.sleep(2)
+    await asyncio.sleep(0)
     try:
         await update.message.delete()
     except Exception as e:
