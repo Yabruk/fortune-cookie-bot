@@ -33,7 +33,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Відправляємо меню без тексту (використовуємо невидимий символ)
-    await update.message.reply_text("\u200b", reply_markup=reply_markup)
+    await update.message.reply_text(".", reply_markup=reply_markup)
 
 # Асинхронна функція для обробки кнопок
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
