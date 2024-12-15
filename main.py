@@ -1,23 +1,16 @@
 import os
 import asyncio
 import json
-import logging
 from datetime import datetime, timedelta
 from random import choice
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from flask import Flask
 
-# Налаштування логування
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
 # Отримуємо токен із змінного середовища
 TOKEN = os.getenv('BOT_TOKEN')
 
-# ID анімованого стікера печива (замініть на свій стікер)
+# ID анімованого стікера печива
 COOKIE_STICKER_ID = "CAACAgEAAxkBAAEK8H9nXwj-Y9LWlnWE37D_jkmOTED_QgAC_QIAAo11IEQSMwdGJ3a-hjYE"
 
 # Шляхи до файлів передбачень
@@ -25,14 +18,12 @@ MORNING_FORTUNES_FILE = "morning_fortunes.json"
 DAILY_FORTUNES_FILE = "daily_fortunes.json"
 EVENING_FORTUNES_FILE = "evening_fortunes.json"
 
-# Flask додаток для запуску на Render
 app = Flask(__name__)
 
 @app.route('/')
 def index():
     return "Bot is running!"
 
-# Вибір файлу передбачень залежно від часу
 def get_fortunes_file():
     now = datetime.now().time()
     if now >= datetime.strptime("04:00", "%H:%M").time() and now < datetime.strptime("12:00", "%H:%M").time():
@@ -42,7 +33,6 @@ def get_fortunes_file():
     else:
         return EVENING_FORTUNES_FILE
 
-# Завантаження передбачень із файлу
 def load_fortunes():
     fortunes_file = get_fortunes_file()
     if not os.path.exists(fortunes_file):
@@ -50,52 +40,33 @@ def load_fortunes():
     with open(fortunes_file, "r", encoding="utf-8") as f:
         return json.load(f), fortunes_file
 
-# Збереження передбачень у файл
 def save_fortunes(fortunes, fortunes_file):
     with open(fortunes_file, "w", encoding="utf-8") as f:
         json.dump(fortunes, f, ensure_ascii=False, indent=4)
 
-# Вибір випадкового передбачення
 def get_random_fortune():
     fortunes, fortunes_file = load_fortunes()
     now = datetime.now()
 
-    logging.info(f"Загальна кількість передбачень у {fortunes_file}: {len(fortunes)}")
-
-    # Фільтруємо передбачення за датою останнього використання
     available_fortunes = [
         fortune for fortune in fortunes
         if not fortune["last_used"] or 
         (datetime.strptime(fortune["last_used"], "%Y-%m-%d") < now - timedelta(days=30))
     ]
 
-    # Логування доступних передбачень
-    logging.info(f"Кількість доступних передбачень після фільтрування: {len(available_fortunes)}")
-    for idx, fortune in enumerate(available_fortunes, start=1):
-        logging.info(f"Доступне передбачення {idx}: '{fortune['text']}', останнє використання: {fortune['last_used']}")
-
-    # Якщо немає доступних передбачень, повертаємо None
     if not available_fortunes:
-        logging.warning(f"Усі передбачення з файлу {fortunes_file} використано. Жодне не доступне.")
         return None
 
-    # Вибираємо випадкове передбачення
     selected_fortune = choice(available_fortunes)
-    logging.info(f"Вибране передбачення: '{selected_fortune['text']}'")
 
-    # Оновлюємо дату останнього використання
     for fortune in fortunes:
         if fortune["text"] == selected_fortune["text"]:
             fortune["last_used"] = now.strftime("%Y-%m-%d")
-            logging.info(f"Оновлено дату використання для передбачення: '{fortune['text']}'")
             break
 
-    # Зберігаємо файл із оновленим передбаченням
     save_fortunes(fortunes, fortunes_file)
-
     return selected_fortune["text"]
 
-# Асинхронна функція для команди /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [[InlineKeyboardButton("Печенька", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -105,76 +76,65 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     try:
         await update.message.delete()
-    except Exception as e:
-        logging.error(f"Не вдалося видалити повідомлення користувача: {e}")
+    except Exception:
+        pass
 
     context.chat_data['status_message'] = status_message
 
-# Функція для обробки кнопки "Печенька"
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
     try:
         await query.message.delete()
-    except Exception as e:
-        logging.error(f"Не вдалося видалити повідомлення: {e}")
+    except Exception:
+        pass
 
     asyncio.create_task(handle_cookie_animation(query, context))
 
-# Асинхронна функція для обробки анімації, передбачення і таймера
 async def handle_cookie_animation(query, context):
     status_message = context.chat_data.get('status_message')
 
-    # Оновлюємо статус: "Секундочку..."
     if status_message:
         try:
             await status_message.edit_text("Секундочку...")
-        except Exception as e:
-            logging.error(f"Не вдалося оновити статус: {e}")
+        except Exception:
+            pass
 
-    # Відправляємо анімований стікер
     sticker_message = await query.message.chat.send_sticker(COOKIE_STICKER_ID)
     await asyncio.sleep(2)
 
-    # Видаляємо стікер
     try:
         await sticker_message.delete()
-    except Exception as e:
-        logging.error(f"Не вдалося видалити стікер: {e}")
+    except Exception:
+        pass
 
-    # Оновлюємо статус: "Твоє передбачення на сьогодні"
     if status_message:
         try:
             await status_message.edit_text("Твоє передбачення на сьогодні")
-        except Exception as e:
-            logging.error(f"Не вдалося оновити статус: {e}")
+        except Exception:
+            pass
 
-    # Отримуємо передбачення через функцію
     fortune = get_random_fortune()
     if fortune is None:
         fortune = "Усі передбачення використано. Поверніться пізніше!"
 
-    # Відправляємо передбачення з моношрифтом
     fortune_message = await query.message.chat.send_message(
         f"<code>{fortune}</code>", parse_mode="HTML"
     )
     await asyncio.sleep(120)
 
-    # Видаляємо передбачення через 2 хвилини
     try:
         await fortune_message.delete()
-    except Exception as e:
-        logging.error(f"Не вдалося видалити повідомлення з передбаченням: {e}")
+    except Exception:
+        pass
 
-    # Оновлюємо статус: "У мене для тебе щось є.."
     if status_message:
         try:
             await status_message.edit_text("У мене для тебе щось є..")
-        except Exception as e:
-            logging.error(f"Не вдалося оновити статус: {e}")
+        except Exception:
+            pass
 
-    # Повертаємо меню з кнопкою
     keyboard = [[InlineKeyboardButton("Печенька", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.chat.send_message("Ось, тримай печеньку", reply_markup=reply_markup)
