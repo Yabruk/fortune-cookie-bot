@@ -18,7 +18,7 @@ FORTUNES = [
 ]
 
 # ID анімованого стікера печива (замініть на свій стікер)
-COOKIE_STICKER_ID = "CAACAgIAAxkBAAEFmzFkUmZWsYC9u9mAbtEHcYZLLdO77AACJgADwDZPE8ykrBMVdINvLwQ"
+COOKIE_STICKER_ID = "CAACAgEAAxkBAAEK8H9nXwj-Y9LWlnWE37D_jkmOTED_QgAC_QIAAo11IEQSMwdGJ3a-hjYE"
 
 # Flask додаток для запуску на Render
 app = Flask(__name__)
