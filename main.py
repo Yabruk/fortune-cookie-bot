@@ -48,7 +48,8 @@ def get_random_fortune():
     ]
 
     if not available_fortunes:
-        raise ValueError("Немає доступних передбачень, які відповідають умовам")
+        # Якщо немає доступних передбачень
+        return None
 
     # Вибираємо випадкове передбачення
     selected_fortune = choice(available_fortunes)
@@ -120,9 +121,8 @@ async def handle_cookie_animation(query, context):
             print(f"Не вдалося оновити статус: {e}")
 
     # Отримуємо передбачення через функцію
-    try:
-        fortune = get_random_fortune()
-    except Exception as e:
+    fortune = get_random_fortune()
+    if fortune is None:
         fortune = "Усі передбачення використано. Поверніться пізніше!"
 
     # Відправляємо передбачення з моношрифтом
