@@ -67,7 +67,7 @@ def get_random_fortune():
     for fortune in fortunes:
         if fortune["text"] == selected_fortune["text"]:
             fortune["last_used"] = now.strftime("%Y-%m-%d")
-            print(f"[LOG] Оновлено дату використання для передбачення: {fortune['text']}")
+            print(f"[LOG] Оновлено дату використання для передбачення: {fortune['text'], fortune["last_used"]}")
             break
 
     # Зберігаємо файл із оновленим передбаченням
