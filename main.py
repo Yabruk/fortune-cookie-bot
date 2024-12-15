@@ -95,46 +95,56 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def handle_cookie_animation(query, context):
     status_message = context.chat_data.get('status_message')
 
+    # Оновлюємо статус: "Секундочку..."
     if status_message:
         try:
             await status_message.edit_text("Секундочку...")
         except Exception as e:
             print(f"Не вдалося оновити статус: {e}")
 
+    # Відправляємо анімований стікер
     sticker_message = await query.message.chat.send_sticker(COOKIE_STICKER_ID)
     await asyncio.sleep(2)
 
+    # Видаляємо стікер
     try:
         await sticker_message.delete()
     except Exception as e:
         print(f"Не вдалося видалити стікер: {e}")
 
+    # Оновлюємо статус: "Твоє передбачення на сьогодні"
     if status_message:
         try:
             await status_message.edit_text("Твоє передбачення на сьогодні")
         except Exception as e:
             print(f"Не вдалося оновити статус: {e}")
 
-    # Отримуємо передбачення
+    # Отримуємо передбачення через функцію
     try:
         fortune = get_random_fortune()
     except Exception as e:
         fortune = "Усі передбачення використано. Поверніться пізніше!"
 
-    fortune_message = await query.message.chat.send_message(f"`{choice(FORTUNES)}`", parse_mode="MarkdownV2")
+    # Відправляємо передбачення з моношрифтом
+    fortune_message = await query.message.chat.send_message(
+        f"<code>{fortune}</code>", parse_mode="HTML"
+    )
     await asyncio.sleep(120)
 
+    # Видаляємо передбачення через 2 хвилини
     try:
         await fortune_message.delete()
     except Exception as e:
         print(f"Не вдалося видалити повідомлення з передбаченням: {e}")
 
+    # Оновлюємо статус: "У мене для тебе щось є.."
     if status_message:
         try:
             await status_message.edit_text("У мене для тебе щось є..")
         except Exception as e:
             print(f"Не вдалося оновити статус: {e}")
 
+    # Повертаємо меню з кнопкою
     keyboard = [[InlineKeyboardButton("Печенька", callback_data="get_fortune")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.chat.send_message("Ось, тримай печеньку", reply_markup=reply_markup)
